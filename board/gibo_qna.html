@@ -1,0 +1,161 @@
+<?
+	include "/home/www/inc/define.h";
+	include "$docPath/inc/db_con_board.inc";
+
+	$seq = $_GET["seq"];
+	if($seq == ""){
+		$seq = 17680;
+	}
+
+	$sql = "select * from Tygem_GiboQAB where seq=$seq limit 1";
+	$query = mysql_query($sql, $bcon);
+	$data = mysql_fetch_array($query);
+
+	$gibo = $data["gibo"];
+	$content = $data["content"];
+
+?>
+<!doctype html>
+<head>
+<meta charset = "euc-kr">
+<meta name="viewport"  id="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,user-scalable=no" />
+
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<title>기보에디터</title>
+<script type="text/javascript" src="http://service.tygem.com/js/jquery-1.8.2.min.js"></script>
+
+<script>
+var ver = "0.0.0.4";
+//var RESOURCE_DOMAIN       = "http://ntyg.tygem.com/tbaduk/";  // 실섭리소스 로드
+var RESOURCE_DOMAIN         = "";                               // 로컬리소스 로드
+var RESOURCE_URL            = RESOURCE_DOMAIN + "./res/";
+var MAIN_RESOURCE_NAME		= "board.xml";
+var MAIN_RESOURCE_VERSION   = ver;
+</script>
+<script src="app.min2.js"></script>
+<style type="text/css">
+    canvas {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        outline: none;
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+    }
+</style>
+</head>
+<body >
+
+<div style = "position:absolute; top:50px; left:1px; width:100%;" >
+<canvas id = "canvas_vx" width = "100%" onclick="saveBoard()">
+	Your browser does not support HTML5 Canvas.
+</canvas>
+</div>
+
+<div style = "position:absolute; top:590px; left:10px; width:500px; height:30px;">
+<input type="button" value=" << " onclick="javascript:goFirst()" style="height:30px;width:50px">
+<input type="button" value=" < " onclick="javascript:goBack()" style="height:30px;width:50px">
+<input type="button" value=" > " onclick="javascript:goNext()" style="height:30px;width:50px">
+<input type="button" value=" >> " onclick="javascript:goEnd()" style="height:30px;width:50px">
+<input type="button" value=" 수순 " onclick="javascript:showSusun()" style="height:30px;width:50px">
+<input type="button" value=" 형세 " onclick="javascript:showTerritory()" style="height:30px;width:50px">
+<input type="button" value="놓아보기" onclick="javascript:setReview()" style="height:30px;width:70px">
+<input type="button" value="저장" onclick="javascript:saveBoard()" style="height:30px;width:70px">
+</div>
+
+<div id="Territory_div" style="position:absolute; top:530px; left:10px; width:400px; height:100px;z-index:99;display:none;"></div>
+
+<div id="content" style="position:absolute; top:30px; left:500px; width:300px; height:500px;"><?=$content?></div>
+
+<script>
+	var bReview = false;
+	var bRefer = false;
+	var bTerri = false;
+
+	function goBack() {
+		var board = vx.map["canvas_vx"];
+		board.setMove(-1);//-999, -5, -1
+	}
+	function goFirst() {
+		var board = vx.map["canvas_vx"];
+		board.setMove(-999);//-999, -5, -1
+	}
+	function goNext() {
+		var board = vx.map["canvas_vx"];
+		board.setMove(1);//1, 5, 999
+	}
+	function goEnd() {
+		var board = vx.map["canvas_vx"];
+		board.setMove(999);//1, 5, 999
+	}
+	function showSusun() {
+		var board = vx.map["canvas_vx"];
+		board.showNumber();
+	}
+	function setReview() {
+		bReview = !bReview;
+		var board = vx.map["canvas_vx"];
+		board.setReviewMode(bReview);
+	}
+
+	function saveBoard() {
+		var board = vx.map["canvas_vx"];
+		//saveBoard(true)이면 현재 노드에 대한 Tree만 저장 saveBoard()이면 전체를 저장
+		var out = board.saveBoard(true);
+		console.log(out);
+
+	}
+
+	window.addEventListener("load", eventWindowLoaded, false);
+
+	function ExplainCallBack(cmt, susun, boardname) {
+		console.log("[", boardname, "] - ", susun, ":", cmt);
+	}
+
+	function TerriCallBack(str, score, name) {//score는 집수 x 2 (반집때문에)
+		$("#Territory_div").html(str);
+//		console.log(str, score, name);
+	}
+	function showTerritory() {
+		bTerri = !bTerri;
+		var board = vx.map["canvas_vx"];
+		
+		if(bTerri == false){$("#Territory_div").html("");}
+		$("#Territory_div").toggle();
+
+		board.showTerritory(bTerri, TerriCallBack);
+	}
+
+
+	function eventWindowLoaded() {
+		if (Modernizr.canvas) {
+			var board;
+			
+			//var gib = '<?=$gibo?>';
+			var sgf = '<?=$gibo?>';
+			//기보(SGF) 보기
+
+			board = new MainApp("canvas_vx", null);
+			board.initialize();
+
+/*
+			board.resizeBoard(720, 720);
+			board.setResolution(2);
+			board.showCoord(true);
+			board.openBoard(sgf);
+*/
+			board.resizeBoard(500, 500);
+			board.showCoord(true);
+			board.showMenu(true);
+			board.openBoard(sgf);
+			board.enableExpand(false);//확대,축소 방지
+			board.setExplainCallBack(ExplainCallBack);
+
+
+		}
+	}
+</script>
+</body>
+</html>

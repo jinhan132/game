@@ -1,0 +1,151 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<xlanguage>
+	<xlang>
+		<xkey>PROGRAM_KEY</xkey>
+		<xtext>타이젬 바둑</xtext>
+	</xlang>
+	<xlang>
+		<xkey>INFORM</xkey>
+		<xtext>알림</xtext>
+	</xlang>
+	<xlang>
+		<xkey>WARN</xkey>
+		<xtext>경고</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_OK</xkey>
+		<xtext>확  인</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_CANCEL</xkey>
+		<xtext>취  소</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_SAVE2</xkey>
+		<xtext>저  장</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_YES</xkey>
+		<xtext>예</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_NO</xkey>
+		<xtext>아니요</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_CLOSE</xkey>
+		<xtext>닫  기</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_EXIT</xkey>
+		<xtext>종  료</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_RELOGIN</xkey>
+		<xtext>재접속</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BTN_REQUEST</xkey>
+		<xtext>신  청</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BTN_REQUEST2</xkey>
+		<xtext>수정 신청</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BTN_REJECT</xkey>
+		<xtext>거  절</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BTN_ACCEPT</xkey>
+		<xtext>수  락</xtext>
+	</xlang>
+	<xlang>
+		<xkey>WARN_LOGOUT</xkey>
+		<xtext>웹 타이젬에서 로그아웃하시겠습니까?</xtext>
+	</xlang>
+	<xlang>
+		<xkey>INFO</xkey>
+		<xtext>알림</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_COORD</xkey>
+		<xtext>좌표</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_ORDER</xkey>
+		<xtext>수순</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_TERRI</xkey>
+		<xtext>형세</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_REVIEW</xkey>
+		<xtext>놓아보기</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_MENU</xkey>
+		<xtext>메뉴</xtext>
+	</xlang>
+	<xlang>
+		<xkey>BT_REFER</xkey>
+		<xtext>참고도</xtext>
+	</xlang>
+	<xlang>
+		<xkey>TT_REVIEW_MENU</xkey>
+		<xtext>놓아보기메뉴</xtext>
+	</xlang>
+	<xlang>
+		<xkey>TT_REVIEW_RE</xkey>
+		<xtext>다시검토</xtext>
+	</xlang>
+	<xlang>
+		<xkey>TT_REVIEW_SAVE</xkey>
+		<xtext>놓아보기저장</xtext>
+	</xlang>
+	<xlang>
+		<xkey>TT_PREV</xkey>
+		<xtext>이전 수</xtext>
+	</xlang>
+	<xlang>
+		<xkey>TT_NEXT</xkey>
+		<xtext>다음 수</xtext>
+	</xlang>
+	<xlang>
+		<xkey>MENU_SETBACK</xkey>
+		<xtext>무르기</xtext>
+	</xlang>
+	<xlang>
+		<xkey>MENU_SKIP</xkey>
+		<xtext>한수쉼</xtext>
+	</xlang>
+	<xlang>
+		<xkey>RT_WHITE</xkey>
+		<xtext>백</xtext>
+	</xlang>
+	<xlang>
+		<xkey>RT_BLACK</xkey>
+		<xtext>흑</xtext>
+	</xlang>
+	<xlang>
+		<xkey>FMT_TERRITORY_DRAW</xkey>
+		<xtext>반면 무승부</xtext>
+	</xlang>
+	<xlang>
+		<xkey>FMT_TERRITORY_RESULT</xkey>
+		<xtext>반면 {0} {1} 집 유리</xtext>
+	</xlang>
+	<xlang>
+		<xkey>FMT_TERRITORY_INFO</xkey>
+		<xtext>{0} ( 흑집 : {1}, 백집 : {2} )</xtext>
+	</xlang>
+	<xlang>
+		<xkey>MENU_BIGON</xkey>
+		<xtext>공배 지정</xtext>
+	</xlang>
+	<xlang>
+		<xkey>MENU_BIGOFF</xkey>
+		<xtext>공배 삭제</xtext>
+	</xlang>
+</xlanguage>

@@ -1,0 +1,199 @@
+<?
+error_reporting(E_ERROR | E_WARNING);
+	include "/home/www/inc/define.h";
+
+
+function GetToken($instr, $lToken, $rToken)
+{
+	$idx = strpos( $instr, $lToken );
+	if ( $idx == -1 ) return null;
+	$idx += strlen($lToken);
+	$idx2 = strpos( $instr, $rToken, $idx );
+	if ( $idx2 == -1 ) return null;
+
+	return substr($instr, $idx, $idx2 - $idx);
+}
+
+	$id = $_GET["id"];
+
+	if($id == ""){
+		exit;
+	}
+
+	include "$docPath/inc/db_con_gibo.inc";
+
+
+	$sql = "select uncompress(gibo) from ngibo_data000 where id=$id";
+	$query = mysql_query($sql, $gbcon);
+	$data = mysql_fetch_array($query);
+
+	$gibo = $data[0];
+	
+	$GAMEWHITENAME = GetToken($gibo,"\\[GAMEWHITENAME=","\\]");
+	$GAMEBLACKNAME = GetToken($gibo,"\\[GAMEBLACKNAME=","\\]");
+	$GAMETOTALNUM = GetToken($gibo,"\\[GAMETOTALNUM=","\\]");
+	$GAMEDATE = GetToken($gibo,"\\[GAMEDATE=","\\]");
+	$GAMERESULT = GetToken($gibo,"\\[GAMERESULT=","\\]");
+
+	$gibo = preg_replace('/\r\n|\r|\n/','	',$gibo);
+	$gibo = str_replace("\\","\\\\",$gibo);
+
+//	echo $gibo."<br>";
+?>
+<!doctype html>
+<head>
+<meta charset = "euc-kr">
+<meta name="viewport"  id="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,user-scalable=no" />
+
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<title>기보에디터</title>
+<script type="text/javascript" src="http://service.tygem.com/js/jquery-1.8.2.min.js"></script>
+
+<script>
+var ver = "0.0.0.4";
+//var RESOURCE_DOMAIN       = "http://ntyg.tygem.com/tbaduk/";  // 실섭리소스 로드
+var RESOURCE_DOMAIN         = "";                               // 로컬리소스 로드
+var RESOURCE_URL            = RESOURCE_DOMAIN + "./res/";
+var MAIN_RESOURCE_NAME		= "board.xml";
+var MAIN_RESOURCE_VERSION   = ver;
+</script>
+<script src="app.min2.js"></script>
+<style type="text/css">
+    canvas {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        outline: none;
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+    }
+</style>
+</head>
+<body >
+
+<div>
+<?
+	$GAMEWHITENAME = str_replace("\\","",GetToken($gibo,"\\[GAMEWHITENAME=","\\]"));
+	$GAMEBLACKNAME = str_replace("\\","",GetToken($gibo,"\\[GAMEBLACKNAME=","\\]"));
+	$GAMETOTALNUM = str_replace("\\","",GetToken($gibo,"\\[GAMETOTALNUM=","\\]"));
+	$GAMEDATE = str_replace("\\","",GetToken($gibo,"\\[GAMEDATE=","\\]"));
+	$GAMERESULT = str_replace("\\","",GetToken($gibo,"\\[GAMERESULT=","\\]"));
+
+
+	echo "<img src='http://img.tygem.com/images/event/20180807/img/dol_white.png' alt='백' width='12' class='mt2' />".$GAMEWHITENAME." vs <img src='http://img.tygem.com/images/event/20180807/img/dol_black.png' alt='백' width='12' class='mt2' />".$GAMEBLACKNAME."<br>";
+	echo $GAMEDATE."<br>";
+	echo $GAMETOTALNUM." ".$GAMERESULT;
+?>
+
+</div>
+
+<div style = "position:absolute; top:80px; left:1px; width:100%;" >
+<canvas id = "canvas_vx" width = "100%">
+	Your browser does not support HTML5 Canvas.
+</canvas>
+</div>
+
+<div style = "position:absolute; top:490px; left:10px; width:450px; height:30px;">
+<input type="button" value=" << " onclick="javascript:goFirst()" style="height:30px;width:50px">
+<input type="button" value=" < " onclick="javascript:goBack()" style="height:30px;width:50px">
+<input type="button" value=" > " onclick="javascript:goNext()" style="height:30px;width:50px">
+<input type="button" value=" >> " onclick="javascript:goEnd()" style="height:30px;width:50px">
+<input type="button" value=" 수순 " onclick="javascript:showSusun()" style="height:30px;width:50px">
+<input type="button" value=" 형세 " onclick="javascript:showTerritory()" style="height:30px;width:50px">
+<input type="button" value="놓아보기" onclick="javascript:setReview()" style="height:30px;width:70px">
+<input type="button" value="저장" onclick="javascript:saveBoard()" style="height:30px;width:70px">
+</div>
+
+<div id="Territory_div" style="position:absolute; top:530px; left:10px; width:400px; height:100px;z-index:99;display:none;"></div>
+
+
+<script>
+	var bReview = false;
+	var bRefer = false;
+	var bTerri = false;
+
+	function goBack() {
+		var board = vx.map["canvas_vx"];
+		board.setMove(-1);//-999, -5, -1
+	}
+	function goFirst() {
+		var board = vx.map["canvas_vx"];
+		board.setMove(-999);//-999, -5, -1
+	}
+	function goNext() {
+		var board = vx.map["canvas_vx"];
+		board.setMove(1);//1, 5, 999
+	}
+	function goEnd() {
+		var board = vx.map["canvas_vx"];
+		board.setMove(999);//1, 5, 999
+	}
+	function showSusun() {
+		var board = vx.map["canvas_vx"];
+		board.showNumber();
+	}
+	function setReview() {
+		bReview = !bReview;
+		var board = vx.map["canvas_vx"];
+		board.setReviewMode(bReview);
+	}
+
+	function saveBoard() {
+		var board = vx.map["canvas_vx"];
+		//saveBoard(true)이면 현재 노드에 대한 Tree만 저장 saveBoard()이면 전체를 저장
+		var out = board.saveBoard(true);
+		console.log(out);
+
+	}
+
+	window.addEventListener("load", eventWindowLoaded, false);
+
+	function ExplainCallBack(cmt, susun, boardname) {
+		console.log("[", boardname, "] - ", susun, ":", cmt);
+	}
+
+	function TerriCallBack(str, score, name) {//score는 집수 x 2 (반집때문에)
+		$("#Territory_div").html(str);
+//		console.log(str, score, name);
+	}
+	function showTerritory() {
+		bTerri = !bTerri;
+		var board = vx.map["canvas_vx"];
+		
+		if(bTerri == false){$("#Territory_div").html("");}
+		$("#Territory_div").toggle();
+
+		board.showTerritory(bTerri, TerriCallBack);
+	}
+
+
+	function eventWindowLoaded() {
+		if (Modernizr.canvas) {
+			var board;
+			
+			var gib = '<?=$gibo?>';
+			//기보(SGF) 보기
+
+			board = new MainApp("canvas_vx", null);
+			board.initialize();
+
+			board.resizeBoard(720, 720);
+			board.setResolution(2);
+			board.showCoord(true);
+			board.openBoard(gib);
+/*
+			board.resizeBoard(400, 400);
+			board.showCoord(true);
+			board.showMenu(true);
+			board.openBoard(gib);
+			board.enableExpand(false);//확대,축소 방지
+			board.setExplainCallBack(ExplainCallBack);
+*/
+
+		}
+	}
+</script>
+</body>
+</html>

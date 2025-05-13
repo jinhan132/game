@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xresource>
+	<ximage>
+		<xname>./res/board.png?ver=5715f17e</xname>
+		<xframe>50,200</xframe>
+		<xresize>0,0,0,0</xresize>
+		<xflag>0x10000020</xflag>
+	</ximage>
+	<ximage>
+		<xname>./res/icon.png?ver=574fd575</xname>
+		<xframe>0,0</xframe>
+		<xresize>0,0,0,0</xresize>
+		<xflag>0x10000020</xflag>
+	</ximage>
+	<xtext>
+		<xname>./res/lang.xml?ver=57e9f144</xname>
+	</xtext>
+	<ximage>
+		<xname>./res/wbsall.png?ver=5b4fe692</xname>
+		<xframe>0,0</xframe>
+		<xresize>0,0,0,0</xresize>
+		<xflag>0x10000020</xflag>
+	</ximage>
+</xresource>
