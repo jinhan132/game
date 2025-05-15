@@ -1,0 +1,505 @@
+<?php
+error_reporting(E_ERROR | E_WARNING);
+
+header("Content-Type:text/html;charset=euc-kr");
+
+include "/home/www/inc/define.h";
+include "$docPath/inc/db_baduk.inc";
+include_once "$docPath/inc/session.inc";
+
+//2019-09-24 모바일 정기점검 추가
+$siteType = 'mobile';
+require_once("$docPath/servercheck/check.php");
+
+$xml = file_get_contents("http://file.tygem.com/client/dicpeople/dicpeople.xml");
+$result_xml = simplexml_load_string($xml);
+
+include "./inc/function.php";
+include "./inc/top.html";
+include "./inc/define_m.php";
+
+// GNB
+include "./inc/gnb.php";
+?>
+<div id="container">
+    <!--대국실입장-->
+<?php
+$serverTotalCnt = 0;
+$serverInfoTotal = file_get_contents("https://api.tygem.com/service/server/serverinfototal.php");
+$serverTotalCnt = $serverInfoTotal + 0;
+?>
+    <div class="boxm10 mb10 pad_t10">
+        <a href="javascript:GameStart()">
+            <div class="boxr0">
+                <img src="//img.tygem.com/images/event/20180807/img/dg_go4.png" alt="타이젬" width="100%" />
+                <p class="dg_text3"><?=number_format($serverTotalCnt)?></p>
+            </div>
+        </a>
+    </div>
+    <!--생중계-->
+    <div class="boxm10 mb20">
+        <div class="live1">
+            <p class="mb5"><img src="//img.tygem.com/images/event/20180807/img/live_tt1.png" alt="Live 생중계" width="130" /></p>
+<?php
+function xml_nick_id($nickname){
+    GLOBAL $result_xml;
+
+    foreach ($result_xml->peo as $value){
+        foreach ($value->nick as $value2){
+            if($value2 == $nickname){
+                return iconv('utf-8', 'euc-kr', $value->ko);
+                exit();
+            }
+        }
+    }
+
+    return $nickname;
+}
+
+function getImgCountryFlag($tmpNum){
+    if($tmpNum == 1)
+        return '//img.tygem.com/images/event/20180807/img/icon_jp.png';
+    else if($tmpNum == 2)
+        return '//img.tygem.com/images/event/20180807/img/icon_ch.png';
+    else if($tmpNum == 3)
+        return '//img.tygem.com/images/event/20180807/img/icon_over.png';
+    else if($tmpNum == 4)
+        return '//img.tygem.com/images/event/20180807/img/icon_tai.png';
+    else
+        return '//img.tygem.com/images/event/20180807/img/icon_kr.png';
+}
+
+include "/home/www/inc/db_connect.inc";
+
+$sql = "SELECT * FROM bet_game WHERE bet_type = 134 AND black_ranknum >= 26 AND white_ranknum >=26 AND ( game_result != 'C' AND game_result != 'W' AND game_result != 'B' ) AND ( server_no != 178 AND server_no != 176 AND server_no != 179 AND server_no != 11 AND server_no != 7 AND server_no != 171 ) ORDER BY ( black_ranknum + white_ranknum ) DESC, game_seq DESC LIMIT 6";
+$query = mysql_query($sql, $connect);
+
+$view_cnt = 0;
+
+while($data = mysql_fetch_array($query)){
+    $server_no = $data['server_no'];
+    $room_no = $data['room_no'];
+
+    $black_id = $data['black_id'];
+    $black_nick = $data['black_nick'];
+    $black_ranknum = $data['black_ranknum'];
+    $black_ccode = $data['black_ccode'];
+
+    $white_id = $data['white_id'];
+    $white_nick = $data['white_nick'];
+    $white_ranknum = $data['white_ranknum'];
+    $white_ccode = $data['white_ccode'];
+
+    $title = substr($data['title'],11,100);
+    $titlenum = $data['titlenum'];
+
+    $gisa_info = $black_nick.$white_nick;
+    $gisa_arr[] = $gisa_info;
+
+    $dist_num = 0;
+
+    for($i=0;$i<sizeof($gisa_arr);$i++){
+        if($gisa_arr[$i] == $gisa_info){
+            $dist_num++;
+        }
+    }
+
+    if($dist_num > 1){
+    }
+    else{
+        $view_cnt++;
+
+        if($view_cnt > 3){
+            break;
+        }
+
+        if($white_ccode == 0){
+            $user1_id = $white_id;
+            $user1_flag = getImgCountryFlag(0);
+        }
+        else{
+            $user1_id = $white_nick;
+            $user1_flag = getImgCountryFlag($white_ccode);
+        }
+
+        if($black_ccode == 0){
+            $user2_id = $black_id;
+            $user2_flag = getImgCountryFlag(0);
+        }
+        else{
+            $user2_id = $black_nick;
+            $user2_flag = getImgCountryFlag($black_ccode);
+        }
+
+        // m_nName/m_vs/m_round
+        $m_nName = "";
+        $m_vs = "";
+        $m_round = "";
+
+        $titlenum_var = explode("/",$titlenum);
+        
+        if($titlenum_var[0] != 0)
+            $m_nName = $game_title[$titlenum_var[0]];
+
+        if($titlenum_var[1] != 0){
+            //$m_vs = $titlenum_var[1]."강";
+            $m_vs = $game_type[$titlenum_var[1]];
+        }
+
+        if($titlenum_var[2] != 0)
+            $m_round = $titlenum_var[2] . '라운드';
+?>
+            <div class="live_vs1" style="cursor:pointer" onclick="javascript:go_game('<?=$server_no?>','<?=$room_no?>');">
+                <p class="pad_t5 fsize14 f_white"> <? if($m_nName != ""){echo $m_nName." ".$m_vs." ".$m_round;}else{echo $title;}?></p>
+                <dl class="live_left">
+<?php  if($white_ccode == 2){ ?>
+                    <dt><div class="in_circle"><img src="<?=getDBUserEweiqiAvata($con2, $white_id)?>" height="100%" /></div></dt>
+<?php  }else{ ?>
+                    <dt><div class="in_circle"><img src="<?=getDBUserAvata($con2, $white_id)?>" height="100%" /></div></dt>
+<?php  } ?>
+                    <dd class="pad_t10 mb5"><img src="<?=$user1_flag?>" alt="" width="22" class="mr3" /><img src="//img.tygem.com/images/event/20180807/img/dol_white.png" alt="백" width="12" class="mt2" /></dd>
+<?php  if($white_ranknum==26 && $white_ccode==0){ ?>
+                    <dd><?=$white_id?><span class="dblock"><?=rep_ranking($white_ranknum)?>단</span></dd>
+<?php  }else{ ?>
+                    <dd><?=xml_nick_id($white_nick)?><span class="dblock"><?=rep_ranking($white_ranknum)?>단</span></dd>
+<?php  } ?>
+                </dl>
+                <dl class="live_right">
+<?php  if($black_ccode == 2){ ?>
+                    <dt><div class="in_circle"><img src="<?=getDBUserEweiqiAvata($con2, $black_id)?>" height="100%" /></div></dt>
+<?php  }else{ ?>
+                    <dt><div class="in_circle"><img src="<?=getDBUserAvata($con2, $black_id)?>" height="100%" /></div></dt>
+<?php  } ?>
+                    <dd class="pad_t10 mb5"><img src="<?=$user2_flag?>" alt="" width="22" class="mr3" /><img src="//img.tygem.com/images/event/20180807/img/dol_black.png" alt="흑" width="12" class="mt2" /></dd>
+<?php  if($black_ranknum==26 && $black_ccode==0){ ?>
+                    <dd><?=$black_id?><span class="dblock"><?=rep_ranking($black_ranknum)?>단</span></dd>
+<?php  }else{ ?>
+                    <dd><?=xml_nick_id($black_nick)?><span class="dblock"><?=rep_ranking($black_ranknum)?>단</span></dd>
+<?php  } ?>
+                </dl>
+            </div>
+<?php
+    }
+}
+
+mysql_close($connect);
+?>
+        </div>
+    </div>
+<?php
+/*
+이벤트 배너
+<a href="http://service.tygem.com/event/E20191218/"><img src="http://img.tygem.com/images/2018/banner/i20191218.jpg" width="100%"></a>
+<a href="https://comic.tygem.com"><img src="http://img.tygem.com/images/comic/m_comic_540x150.jpg" width="100%"></a>
+    <div class="boxm10 mb20">
+        <div class="ev_ban">
+            <div class="slider">
+			<!--<div><a href="https://service.tygem.com/event/2021/squidgame/main.html" target="_blank"><img src="//img.tygem.com/images/event/20211112/img/340x94_202201.jpg" width="100%"></a></a></div>-->
+            <!-- <div><a href="http://m.tygem.com/kbleague/2021/main.php" target="_blank"><img src="//img.tygem.com/images/event/20211112/img/340x94.jpg" width="100%"></a></a></div> -->
+            </div>
+            <script>
+            $(document).ready(function(){
+                //$('.slider').bxSlider({auto:true});
+            });
+            </script>
+        </div>
+    </div>
+*/
+?>
+    <!--최신뉴스/페이스북-->
+    <div class="boxm10 mb20">
+        <div class="news_tt1">최신 뉴스<span class="more"><a href="/news/">더보기<img src="//img.tygem.com/images/event/20180807/img/arrow_type2_right.png" width="12" height="12" /></a></span></div>
+        <ul class="news_pic1">
+<?php
+include "$docPath/inc/db_con_board.inc";
+
+$not_seq = "";
+
+// 2024.05.21 UPDATE: viewflag = 1 추가
+//$sql = "SELECT Tygem_mainNews.NEWSIMG, Tygem_news.listtitle, Tygem_news.seq, Tygem_news.gubun, Tygem_news.igubun, Tygem_news.iname FROM Tygem_mainNews, Tygem_news WHERE Tygem_mainNews.LINKURL = Tygem_news.seq AND Tygem_mainNews.SITETYPE = 'TY' AND Tygem_mainNews.READNUM > 0 ORDER BY Tygem_mainNews.READNUM ASC LIMIT 2";
+$sql = "SELECT Tygem_mainNews.NEWSIMG, Tygem_news.listtitle, Tygem_news.seq, Tygem_news.gubun, Tygem_news.igubun, Tygem_news.iname FROM Tygem_mainNews, Tygem_news WHERE Tygem_mainNews.LINKURL = Tygem_news.seq AND Tygem_mainNews.SITETYPE = 'TY' AND Tygem_mainNews.READNUM > 0 AND Tygem_news.viewflag = 1 ORDER BY Tygem_mainNews.READNUM ASC LIMIT 2";
+$query = mysql_query($sql, $bcon);
+
+while($data = mysql_fetch_array($query)){
+    $iname = $data['iname'];
+    $NEWSIMG = $data['NEWSIMG'];
+    $listtitle = $data['listtitle'];
+    $seq = $data['seq'];
+    $gubun = $data['gubun'];
+
+    $listtitle = mb_substr($listtitle, 0, 24, 'euc-kr');
+
+    if(mb_strlen($listtitle) > 22)
+        $listtitle = mb_substr($data['listtitle'], 0, 22, 'euc-kr') . '..';
+    
+    $not_seq = $not_seq . " AND seq != " . $seq;
+?>
+            <li class="mb15"><a href="/news/news_view.html?gubun=<?=$gubun?>&seq=<?=$seq?>"><div class="boxr5 mb10"><img src="<?=$NEWSIMG?>" width="100%" /></div><p><span class="f_blue">[<?=$iname?>]</span> <?=$listtitle?></p></a></li><!--254*149-->
+<?php } ?>
+        </ul>
+        <ul class="news_list1">
+<?php
+$sql_part = "SELECT seq, gubun, iname, listtitle, igubun FROM Tygem_news WHERE viewflag = 1 " . $not_seq . " ORDER BY seq DESC LIMIT 3";
+$query_part = mysql_query($sql_part, $bcon);
+
+while($data_part = mysql_fetch_array($query_part)){
+    $iname = $data_part['iname'];
+    $seq = $data_part['seq'];
+    $gubun = $data_part['gubun'];
+    $igubun = $data_part['igubun'];
+    $listtitle = $data_part['listtitle'];
+
+    $listtitle = mb_substr($listtitle, 0, 24, 'euc-kr');
+
+    if(mb_strlen($listtitle) > 23)
+        $listtitle = mb_substr($data_part['listtitle'], 0, 22, 'euc-kr') . "..";
+?>
+            <li  style="line-height:1em"><a href="/news/news_view.html?gubun=<?=$gubun?>&seq=<?=$seq?>"><span class="f_blue">[<?=$iname?>]</span> <?=$listtitle?></a></li>
+<?php
+}
+
+mysql_close($bcon);
+?>
+        </ul>
+        <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fgotygem&tabs=timeline&width=340&height=70&small_header=true&adapt_container_width=true&hide_cover=true&show_facepile=false&appId=335688186841844" width="100%" height="70" style="border:none;overflow:hidden" title="gotygem_facebook" scrolling="no" frameborder="0" allowTransparency="true"></iframe>
+    </div>
+    <!--타이젬 상품배너-->
+    <div class="boxm10">
+        <ul class="mban">
+            <li><a href="./tgmall/avata.html?gubun=2" target="_new"><div class="boxr5"><img src="//img.tygem.com/images/event/20180807/img/ban_plus0831.jpg" width="100%" /></div></a></li>
+            <li><a href="./tgmall/item.html" target="_new"><div class="boxr5"><img src="//img.tygem.com/images/event/20180807/img/ban_bigd.jpg" width="100%" /></div></a></li>
+        </ul>
+    </div>
+    <!--생중계 일정-->
+<?php
+include "$docPath/inc/db_con_board.inc";
+
+$sql_sch = "SELECT * FROM Tygem_LiveGibo WHERE gamedate >= DATE_ADD(NOW(), INTERVAL -1 DAY) ORDER BY bigmatch DESC, gamedate ASC, gamehour ASC, seq ASC LIMIT 4";
+$query_sch = mysql_query($sql_sch, $bcon);
+
+$i = 1;
+
+while($data_sch = mysql_fetch_array($query_sch)){
+    $gamedate = $data_sch['gamedate'];
+    $gamehour = $data_sch['gamehour'];
+    $gibonum = $data_sch['gibonum'];
+    $seq = $data_sch['seq'];
+    $iname = $data_sch['iname'];
+    $wname = $data_sch['wname'];
+    $bname = $data_sch['bname'];
+    $wgrade = $data_sch['wgrade'];
+    $bgrade = $data_sch['bgrade'];
+    $gibotype = $data_sch['gibotype'];
+    $gamename = $data_sch['gamename'];
+    
+    $gameM = date("n", strtotime($gamedate));
+    $gameD = date("d", strtotime($gamedate));
+    
+    if($i == 1){
+        $sql_wgisa = "SELECT charac, country FROM Tygem_gisa WHERE name = '" . $wname . "' ORDER BY showflag DESC LIMIT 1";
+        $query_wgisa = mysql_query($sql_wgisa, $bcon);
+
+        $data_wgisa = mysql_fetch_array($query_wgisa);
+
+        if($data_wgisa['charac'])
+            $wgisa_img = "http://file.tygem.com/updata" . $data_wgisa['charac'];
+
+        if($data_wgisa['country'] == 2)
+            $wgisa_flag = getImgCountryFlag(1);
+        else if($data_wgisa['country'] == 1)
+            $wgisa_flag = getImgCountryFlag(2);
+        else if($data_wgisa["country"] == 0)
+            $wgisa_flag = getImgCountryFlag(0);
+
+        $sql_bgisa = "SELECT charac, country FROM Tygem_gisa WHERE name = '" . $bname . "' ORDER BY showflag DESC LIMIT 1";
+        $query_bgisa = mysql_query($sql_bgisa, $bcon);
+
+        $data_bgisa = mysql_fetch_array($query_bgisa);
+
+        if($data_bgisa['charac'])
+            $bgisa_img = "http://file.tygem.com/updata" . $data_bgisa['charac'];
+
+        if($data_bgisa['country'] == 2)
+            $bgisa_flag = getImgCountryFlag(1);
+        else if($data_bgisa['country'] == 1)
+            $bgisa_flag = getImgCountryFlag(2);
+        else if($data_bgisa['country'] == 0)
+            $bgisa_flag = getImgCountryFlag(0);
+?>
+    <div class="boxm10 mb20">
+        <div class="live2">
+            <p class="live2_tt"><span class="f_italic">Live</span> 중계일정</p>
+            <div class="live_vs2">
+                <p class="live_time"><?=$gameM?>월 <?=$gameD?>일 <?=$gamehour?> <br><?=$iname?> <?=$gamename?> </p>
+                <div class="inblock"><div class="live_vs2_in"><img src="<?=$wgisa_img?>" height="100%" /></div><p class="fsize14 pad_t5"><img src="<?=$wgisa_flag?>" alt="" width="22" class="mr3" /><?=$wname?> <?=$wgrade?></div>
+                <img src="http://img.tygem.com/images/event/20180807/img/icon_vs.png" width="25" alt="vs" class="pad_t20 vtop"/>
+                <div class="inblock"><div class="live_vs2_in"><img src="<?=$bgisa_img?>" height="100%" /></div><p class="fsize14 pad_t5"><img src="<?=$bgisa_flag?>" alt="" width="22" class="mr3" /><?=$bname?> <?=$bgrade?></div>
+            </div>
+            <ul class="live_list1">
+<?php
+    }
+
+    if($i==2 or $i==3 or $i==4){
+?>
+                <li><span class="f_yellow"><?=$gameM?>월 <?=$gameD?>일 <?=$gamehour?></span> | <?=$iname?> <?=$gamename?> | <?=$wname?> VS <?=$bname?></li>
+<?php } ?>
+                <div id="all_live">
+<?php
+    $i++;
+}
+?>
+<?php if($i>1){ ?>
+                </div>
+            </ul>
+            <p class="live_more"><a href="javascript:go_location('livenews')"><img src="http://img.tygem.com/images/event/20180807/img/icon_cal.png" width="20" class="vmid mr5" />생중계 일정 <span class="f_italic f_blue">Live</span> <span class="fsize12 f_gray">더보기<img src="http://img.tygem.com/images/event/20180807/img/arrow_type2_right.png" width="12" height="12" class="vtop pad_t2" /></span></a></p>
+        </div>
+    </div>
+<?php } ?>
+    <!--최신 기보-->
+    <div class="boxm10 mb20">
+        <div class="gibo_tt1">최신 기보<span class="more"><a href="<?=$action_url?>&LNK=4&POS=1" target="_new">더보기<img src="http://img.tygem.com/images/event/20180807/img/arrow_type2_right.png" width="12" height="12" /></a></span></div>
+<?php
+include "$docPath/inc/db_con_gibo.inc";
+
+$sql_gibo = "SELECT * FROM ngibo_listex AS A inner join ngibo_cate AS B inner join ngibo_list AS C ON A.cat_id = B.cat_id AND A.id = C.id and B.service_code=0 ORDER BY date DESC LIMIT 3";
+$query_gibo = mysql_query($sql_gibo, $gbcon);
+
+while($data_gibo = mysql_fetch_array($query_gibo)){
+    $white_id = $data_gibo['white_id'];
+    $white_scode = $data_gibo['white_scode'];
+    $white_rank = $data_gibo['white_rank'];
+    $black_id = $data_gibo['black_id'];
+    $black_scode = $data_gibo['black_scode'];
+    $black_rank = $data_gibo['black_rank'];
+    $susun = $data_gibo['susun'];
+    $result = $data_gibo['result'];
+    $date = $data_gibo['date'];
+
+    $cat_name = $data_gibo['cat_name'];
+    $cat_name = explode(']',$cat_name);
+
+    $id = $data_gibo['id'];
+    
+    if($result == '999')
+        $result = '백 불계승';
+    else if($result == '-999')
+        $result = '흑 불계승';
+    else if($result == '0.5')
+        $result = '백 반집승';
+    else if($result == '-0.5')
+        $result = '흑 반집승';
+    else if($result > 0){
+        $result_var = explode('.', $result);
+        
+        if($result_var[1] == 5)
+            $result = '백 ' . $result_var[0] . '집반승';
+        else
+            $result = '백 ' . $result_var[0] . '집승';
+    }
+    else if($result < 0){
+        $result_var = explode('.', $result);
+        
+        if($result_var[1] == 5)
+            $result = '흑 ' . abs($result_var[0]) . '집반승';
+        else
+            $result = '흑 ' . abs($result_var[0]) . '집승';
+    }
+
+    $white_flag = getImgCountryFlag($white_scode);
+    $black_flag = getImgCountryFlag($black_scode);
+?>
+        <div class="gibo_box mb10">
+            <!--<a href="/board/gibo.html?id=<?=$id?>" target="_new">-->
+            <a href="<?=$action_url?>&LNK=4&POS=1&GNO=<?=$id?>" target="_new">
+                <table class="t_type1">
+                <colgroup>
+                    <col width="200px" />
+                    <col width="120px" />
+                </colgroup>
+                <tr>
+                    <th class="f_blue"><?=$cat_name[1]?> </th>
+                    <td class="tright"><?=date("Y-m-d",strtotime($date))?></td>
+                </tr>
+                <tr>
+                    <td><img src="<?=$white_flag?>" alt="" width="22" class="mr3" /><img src="http://img.tygem.com/images/event/20180807/img/dol_white.png" alt="백" width="12" class="mt2" /> <?=$white_id?> <?=rep_ranking($white_rank)?>단</td>
+                    <td class="tright"><?=$susun?>수</td>
+                </tr>
+                <tr>
+                    <td><img src="<?=$black_flag?>" alt="" width="22" class="mr3" /><img src="http://img.tygem.com/images/event/20180807/img/dol_black.png" alt="흑" width="12" class="mt2" /> <?=$black_id?> <?=rep_ranking($black_rank)?>단</td>
+                    <td class="tright"><?=$result?></td>
+                </tr>
+                </table>
+            </a>
+        </div>
+<?php
+}
+
+mysql_close($gbcon);
+?>
+    </div>
+    <!--공지사항-->
+<?php
+$sql = "SELECT * FROM Tygem_boardNo WHERE tid = 'N001' AND ( allview = 1 OR tygemview = 1 ) ORDER BY seq DESC LIMIT 1";
+$query = mysql_query($sql, $bcon);
+
+$data = mysql_fetch_array($query);
+
+$title = $data["title"];
+$seq = $data["seq"];
+
+mysql_close($bcon);
+?>
+    <div class="boxm10 mb20"><p class="notice" onclick="javascript:location.href='./notice/notice_view.html?seq=<?=$seq?>'"><?=$title?></p></div>
+    <!--공지 문의 고객센터-->
+    <div class="boxm10">
+        <ul class="cs_box">
+            <li><a href="/notice/"><span class="dblock pad_t20"><img src="http://img.tygem.com/images/event/20180807/img/icon_notice.png" alt="공지" width="80" /></span><p>공지사항</p><!--공지사항 업데이트 시 New아이콘 보임--><span class="notice_new"><img src="http://img.tygem.com/images/event/20180807/img/notice_new.png" alt="New" width="16" height="16"></span></a></li>
+            <li><a href="/customer/help.html"><span class="dblock pad_t20"><img src="http://img.tygem.com/images/event/20180807/img/icon_mail.png" alt="문의" width="80" /></span><p>1:1 문의하기</p></a></li>
+            <li class="w120"><a href="/customer/faq.html"><span class="dblock pad_t2"><img src="http://img.tygem.com/images/event/20180807/img/icon_cs.png" alt="고객센터" width="80" /></span><p><span class="fsize14 bb">1661-9699</span><span class="dblock f_gray fsize10">상담시간<br />10:00-18:00</span></p></a></li>
+        </ul>
+    </div>
+</div>
+<?php
+/*
+<div class="pop" id="open_pop" style="display:none">
+    <div class="pop_box2">
+        <p class="pad_t40"><img src="http://img.tygem.com/images/event/20180807/img/pop_ev_cont1.png" width="340" /></p>
+        <p><a href="/event/open/ninebaduk.html" class="mr10"><img src="http://img.tygem.com/images/event/20180807/img/pop_ev_btn1.png" width="140" /></a><a href="/event/open/kakao.html"><img src="http://img.tygem.com/images/event/20180807/img/pop_ev_btn2.png" width="140" /></a></p>
+        <span class="ev_pop_close"><span onclick="javascript:$('#open_pop').hide()"><img src="http://img.tygem.com/images/event/20180807/img/ev_pop_close.png" alt="닫기" width="24" /></span></span>
+    </div>
+</div>
+*/
+?>
+<div class="pop20211112" id="open_pop" style="display:none">
+    <div class="pop_con">
+        <p><a href="https://service.tygem.com/event/2021/squidgame/main.html"><img src="//img.tygem.com/images/event/20211112/img/280x250_202201.jpg" width="280"></a></p>
+        <p><a href="javascript:openPopUpLayerTerm(7);"><img src="//img.tygem.com/images/event/20211112/img/btn_pop_7days.jpg" width="174" alt="일주일간 보지 않기"></a><a href="javascript:closePopUpLayer();"><img src="//img.tygem.com/images/event/20211112/img/btn_pop_close.jpg" alt="닫기" width="106"></a></p>
+        <!--<span class="pop_close_top"><span onclick="javascript:$('#open_pop').hide()"><img src="//img.tygem.com/images/event/20211112/img/btn_pop_close2.jpg" alt="닫기" width="40"></span></span>-->
+		<!--<a href="http://m.tygem.com/kbleague/2021/main.php"><img src="//img.tygem.com/images/event/20211112/img/pop_con.jpg" width="280"></a>-->
+    </div>
+</div>
+<script>
+if(getCookie("openflag2") == "Y"){
+}
+else{
+//    openPopUplayer();
+}
+
+function openPopUplayer(){
+    $("#open_pop").show();
+}
+
+function closePopUpLayer(){
+    $('#open_pop').hide();
+}
+
+function openPopUpLayerTerm(tmpDay){
+    if(tmpDay != '' && tmpDay > 0){
+        setCookie('openflag2', 'Y', 169, 'm.tygem.com');	//openflag
+        closePopUpLayer();
+    }
+}
+</script>
+<?php include "/home/www/game/inc/footer_navi.html"; ?>
+</body>
+</html>
